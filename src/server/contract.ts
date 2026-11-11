@@ -70,10 +70,10 @@ export interface GoalDTO {
 
 export interface StickerDTO {
   id: string;
-  kind: "golden_mango";
+  kind: "golden_mango" | "condor";
   placeId: string;
   placeLabel: string;
-  milestone: "first_sale";
+  milestone: "first_sale" | "goal_reached";
   origin: "declared_unverified"; // place is declared by the user, not verified
   earnedAt: string;
 }
@@ -81,6 +81,47 @@ export interface StickerDTO {
 export interface ProfileDTO {
   alias: string;
   regionId: RegionId;
+  avatar: StickerId; // seller's chosen local sticker
+  receiptNote: string; // thank-you note printed on receipts, 0..80 chars
+}
+
+// Local sticker ids. Art lives in src/components/stickers.tsx (same ids).
+export type StickerId =
+  | "tortoise" | "booby" | "sealion" // Galápagos
+  | "llama" | "cotopaxi" | "hummingbird" // Sierra
+  | "mango" | "crab" | "palm" // Costa
+  | "golden_mango" | "condor"; // milestones
+
+export type OrderEventType =
+  | "created" | "approved" | "captured" | "pending" | "verified"
+  | "verification_failed" | "cancelled" | "sticker_awarded";
+
+export interface OrderEventDTO {
+  type: OrderEventType;
+  at: string; // ISO 8601
+  detail: string | null; // short English detail, e.g. capture id or failed check name
+}
+
+export interface CheckDTO {
+  name: "status" | "amount" | "currency" | "payee" | "session";
+  ok: boolean;
+}
+
+export interface ReceiptDTO {
+  receiptNo: string; // e.g. "PA-2026-0007"
+  order: OrderDTO;
+  seller: ProfileDTO & { regionLabel: string };
+  lines: {
+    grossCents: number;
+    feeObservedCents: number | null; // sandbox observed
+    netObservedCents: number | null;
+    feeEcCents: number | null; // Ecuador estimate (sales only)
+    netEcCents: number | null;
+  };
+  events: OrderEventDTO[]; // chronological traceability
+  checks: CheckDTO[]; // empty until a capture was verified or failed
+  sticker: StickerDTO | null; // sticker earned by this order, if any
+  cause: { id: string; name: string } | null; // donations only
 }
 
 export type RegionId = "galapagos" | "sierra" | "costa";
@@ -90,6 +131,7 @@ export interface DashboardDTO {
   goal: GoalDTO;
   sales: SalesSummary;
   lastOrder: OrderDTO | null;
+  recent: OrderDTO[]; // last 10 orders, newest first (sales and donations)
   stickers: StickerDTO[];
   donations: { count: number; totalCents: number };
   places: { id: RegionId; label: string }[];
