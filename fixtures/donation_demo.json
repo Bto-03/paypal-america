@@ -1,0 +1,15 @@
+{
+  "data": {
+    "id": "MOCK-7M4VD2NQXR8KC",
+    "purpose": "donation_demo",
+    "status": "created",
+    "amountCents": 100,
+    "currency": "USD",
+    "causeId": "demo-galapagos-reef",
+    "captureId": null,
+    "approvalUrl": "http://localhost:3000/mock-paypal?token=MOCK-7M4VD2NQXR8KC",
+    "createdAt": "2026-11-11T14:40:00.000Z",
+    "updatedAt": "2026-11-11T14:40:00.000Z"
+  },
+  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+}

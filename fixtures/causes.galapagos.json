@@ -1,0 +1,29 @@
+{
+  "data": [
+    {
+      "id": "demo-galapagos-reef",
+      "name": "DEMO · Reef cleanup fund",
+      "regionId": "galapagos",
+      "description": "Demo cause for the sandbox. No real organization receives this.",
+      "demo": true,
+      "amountCents": 100
+    },
+    {
+      "id": "demo-sierra-school",
+      "name": "DEMO · Rural school supplies",
+      "regionId": "sierra",
+      "description": "Demo cause for the sandbox. No real organization receives this.",
+      "demo": true,
+      "amountCents": 100
+    },
+    {
+      "id": "demo-costa-mangrove",
+      "name": "DEMO · Mangrove restoration",
+      "regionId": "costa",
+      "description": "Demo cause for the sandbox. No real organization receives this.",
+      "demo": true,
+      "amountCents": 100
+    }
+  ],
+  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+}

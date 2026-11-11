@@ -1,0 +1,38 @@
+{
+  "data": {
+    "aiStatus": "ok",
+    "insights": [
+      {
+        "category": "progress",
+        "text": "Your estimated net is $188.90, which is 63% of your $300.00 goal.",
+        "evidenceIds": ["net_ec", "goal_percent", "goal_target"],
+        "assumptions": ["Net uses the Ecuador fee estimate, not a PayPal quote."]
+      },
+      {
+        "category": "fees",
+        "text": "The PayPal sandbox charged a $7.47 fee on the test sale; the Ecuador estimate for the same sale is $11.10.",
+        "evidenceIds": ["observed_fee", "ec_fee"],
+        "assumptions": ["Sandbox fees are not your real Ecuador fees."]
+      },
+      {
+        "category": "withdrawal",
+        "text": "If the $188.90 estimated net were withdrawn, the scenario keeps $178.90 after the $10.00 minimum fee.",
+        "evidenceIds": ["net_ec", "withdraw_net", "withdraw_fee"],
+        "assumptions": ["Withdrawal is a scenario only; this app does not move money."]
+      }
+    ],
+    "evidence": [
+      { "id": "gross", "label": "Gross sales (completed test sales)", "valueCents": 20000, "value": "$200.00", "source": "computed" },
+      { "id": "ec_fee", "label": "Ecuador fee estimate", "valueCents": 1110, "value": "$11.10", "source": "ec_estimate" },
+      { "id": "net_ec", "label": "Estimated net (Ecuador estimate)", "valueCents": 18890, "value": "$188.90", "source": "ec_estimate" },
+      { "id": "goal_target", "label": "Goal", "valueCents": 30000, "value": "$300.00", "source": "declared" },
+      { "id": "goal_percent", "label": "Goal progress", "valueCents": null, "value": "63%", "source": "computed" },
+      { "id": "withdraw_fee", "label": "Withdrawal fee scenario", "valueCents": 1000, "value": "$10.00", "source": "ec_estimate" },
+      { "id": "withdraw_net", "label": "Withdrawal net scenario", "valueCents": 17890, "value": "$178.90", "source": "ec_estimate" },
+      { "id": "observed_fee", "label": "PayPal sandbox fee (observed)", "valueCents": 747, "value": "$7.47", "source": "sandbox_observed" },
+      { "id": "observed_net", "label": "PayPal sandbox net (observed)", "valueCents": 19253, "value": "$192.53", "source": "sandbox_observed" }
+    ],
+    "cached": false
+  },
+  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+}

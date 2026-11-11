@@ -1,0 +1,15 @@
+{
+  "data": {
+    "id": "MOCK-9P3LM4QRSTU0V",
+    "purpose": "sale",
+    "status": "pending",
+    "amountCents": 20000,
+    "currency": "USD",
+    "causeId": null,
+    "captureId": "MOCKCAP-8T2KD5VWXN1Q",
+    "approvalUrl": null,
+    "createdAt": "2026-11-11T14:20:00.000Z",
+    "updatedAt": "2026-11-11T14:20:45.000Z"
+  },
+  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+}

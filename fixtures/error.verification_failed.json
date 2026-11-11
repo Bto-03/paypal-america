@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "verification_failed",
+    "message": "The payment could not be verified, so it was not counted."
+  },
+  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+}

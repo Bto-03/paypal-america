@@ -1,0 +1,19 @@
+{
+  "data": {
+    "aiStatus": "unavailable",
+    "insights": [],
+    "evidence": [
+      { "id": "gross", "label": "Gross sales (completed test sales)", "valueCents": 20000, "value": "$200.00", "source": "computed" },
+      { "id": "ec_fee", "label": "Ecuador fee estimate", "valueCents": 1110, "value": "$11.10", "source": "ec_estimate" },
+      { "id": "net_ec", "label": "Estimated net (Ecuador estimate)", "valueCents": 18890, "value": "$188.90", "source": "ec_estimate" },
+      { "id": "goal_target", "label": "Goal", "valueCents": 30000, "value": "$300.00", "source": "declared" },
+      { "id": "goal_percent", "label": "Goal progress", "valueCents": null, "value": "63%", "source": "computed" },
+      { "id": "withdraw_fee", "label": "Withdrawal fee scenario", "valueCents": 1000, "value": "$10.00", "source": "ec_estimate" },
+      { "id": "withdraw_net", "label": "Withdrawal net scenario", "valueCents": 17890, "value": "$178.90", "source": "ec_estimate" },
+      { "id": "observed_fee", "label": "PayPal sandbox fee (observed)", "valueCents": 747, "value": "$7.47", "source": "sandbox_observed" },
+      { "id": "observed_net", "label": "PayPal sandbox net (observed)", "valueCents": 19253, "value": "$192.53", "source": "sandbox_observed" }
+    ],
+    "cached": false
+  },
+  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+}

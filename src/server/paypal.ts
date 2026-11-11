@@ -79,7 +79,8 @@ export function verifyCapture(order: PPOrder, exp: Expected): Verified {
     return { ok: false, reason: "unreadable amount" };
   }
   if (amount !== exp.amountCents) return { ok: false, reason: `amount ${amount} != ${exp.amountCents}` };
-  if (exp.payeeEmail && pu.payee?.email_address && pu.payee.email_address.toLowerCase() !== exp.payeeEmail.toLowerCase()) {
+  // Fail closed: an expected payee that PayPal does not report is a mismatch.
+  if (exp.payeeEmail && pu.payee?.email_address?.toLowerCase() !== exp.payeeEmail.toLowerCase()) {
     return { ok: false, reason: "payee email mismatch" };
   }
   if (exp.payeeMerchantId && pu.payee?.merchant_id !== exp.payeeMerchantId) {
@@ -256,6 +257,14 @@ class MockClient implements PayPalClient {
   async get(id: string) {
     const m = mocks.get(id);
     if (!m) throw new PayPalError("mock order not found", 404, "RESOURCE_NOT_FOUND");
+    // A pending mock capture clears on the next check, so the "check again" path can be demoed.
+    const cap = m.order.purchase_units?.[0]?.payments?.captures?.[0];
+    if (cap?.status === "PENDING") {
+      const gross = toCents(cap.amount.value);
+      const fee = Math.round(gross * 0.0349) + 49;
+      cap.status = "COMPLETED";
+      cap.seller_receivable_breakdown = { gross_amount: cap.amount, paypal_fee: { currency_code: "USD", value: dollars(fee) }, net_amount: { currency_code: "USD", value: dollars(gross - fee) } };
+    }
     return structuredClone(m.order);
   }
 }

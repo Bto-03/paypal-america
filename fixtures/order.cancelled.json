@@ -1,0 +1,15 @@
+{
+  "data": {
+    "id": "MOCK-3HFJ6TWB0ZD5A",
+    "purpose": "sale",
+    "status": "cancelled",
+    "amountCents": 20000,
+    "currency": "USD",
+    "causeId": null,
+    "captureId": null,
+    "approvalUrl": null,
+    "createdAt": "2026-11-11T14:30:00.000Z",
+    "updatedAt": "2026-11-11T14:31:10.000Z"
+  },
+  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+}

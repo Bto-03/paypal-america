@@ -1,0 +1,32 @@
+{
+  "data": {
+    "profile": { "alias": "Guest", "regionId": "galapagos" },
+    "goal": { "targetCents": 30000, "progressCents": 0, "percent": 0, "basis": "ec_estimate_net" },
+    "sales": {
+      "count": 0,
+      "grossCents": 0,
+      "observed": null,
+      "estimateEc": {
+        "feeCents": 0,
+        "netCents": 0,
+        "rule": "5.40% + $0.30 per sale (estimate for an Ecuador account)",
+        "source": "ec_estimate"
+      },
+      "withdrawal": {
+        "feeCents": 0,
+        "netCents": 0,
+        "rule": "0.50% of the net, minimum $10 (withdrawal scenario)",
+        "source": "ec_estimate"
+      }
+    },
+    "lastOrder": null,
+    "stickers": [],
+    "donations": { "count": 0, "totalCents": 0 },
+    "places": [
+      { "id": "galapagos", "label": "Galápagos" },
+      { "id": "sierra", "label": "Sierra (Quito)" },
+      { "id": "costa", "label": "Costa (Guayaquil)" }
+    ]
+  },
+  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+}

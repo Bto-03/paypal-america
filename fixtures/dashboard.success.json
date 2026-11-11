@@ -1,0 +1,53 @@
+{
+  "data": {
+    "profile": { "alias": "Ana", "regionId": "galapagos" },
+    "goal": { "targetCents": 30000, "progressCents": 18890, "percent": 63, "basis": "ec_estimate_net" },
+    "sales": {
+      "count": 1,
+      "grossCents": 20000,
+      "observed": { "feeCents": 747, "netCents": 19253, "source": "sandbox_observed" },
+      "estimateEc": {
+        "feeCents": 1110,
+        "netCents": 18890,
+        "rule": "5.40% + $0.30 per sale (estimate for an Ecuador account)",
+        "source": "ec_estimate"
+      },
+      "withdrawal": {
+        "feeCents": 1000,
+        "netCents": 17890,
+        "rule": "0.50% of the net, minimum $10 (withdrawal scenario)",
+        "source": "ec_estimate"
+      }
+    },
+    "lastOrder": {
+      "id": "MOCK-7K2QX9ABCD1EF",
+      "purpose": "sale",
+      "status": "completed",
+      "amountCents": 20000,
+      "currency": "USD",
+      "causeId": null,
+      "captureId": "MOCKCAP-4H8ZP2LMN9WQ",
+      "approvalUrl": null,
+      "createdAt": "2026-11-11T14:10:00.000Z",
+      "updatedAt": "2026-11-11T14:11:30.000Z"
+    },
+    "stickers": [
+      {
+        "id": "stk_01JABC0001",
+        "kind": "golden_mango",
+        "placeId": "galapagos",
+        "placeLabel": "Galápagos",
+        "milestone": "first_sale",
+        "origin": "declared_unverified",
+        "earnedAt": "2026-11-11T14:11:30.000Z"
+      }
+    ],
+    "donations": { "count": 0, "totalCents": 0 },
+    "places": [
+      { "id": "galapagos", "label": "Galápagos" },
+      { "id": "sierra", "label": "Sierra (Quito)" },
+      { "id": "costa", "label": "Costa (Guayaquil)" }
+    ]
+  },
+  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+}

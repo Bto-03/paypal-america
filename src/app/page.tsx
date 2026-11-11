@@ -1,69 +1,65 @@
-import Image from "next/image";
+"use client";
+import { useRef, useState } from "react";
+import { ApiError, createOrder } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
+import { useDashboard } from "@/components/useDashboard";
+import ProfileForm from "@/components/ProfileForm";
+import MoneyCard from "@/components/MoneyCard";
+import Insights from "@/components/Insights";
+import { btnPrimary, btnSecondary, Card, Msg } from "@/components/ui";
 
 export default function Home() {
+  const { t } = useI18n();
+  const { data, setData, error, reload } = useDashboard();
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const lock = useRef(false);
+
+  async function charge() {
+    if (lock.current) return;
+    lock.current = true;
+    setLoading(true);
+    setErr(null);
+    try {
+      const o = await createOrder("sale");
+      if (!o.approvalUrl) throw new ApiError("internal", t("error.generic"), 500);
+      window.location.assign(o.approvalUrl);
+    } catch (e) {
+      setErr(e instanceof ApiError ? e.message : t("error.generic"));
+      lock.current = false;
+      setLoading(false);
+    }
+  }
+
+  if (error && !data) {
+    return (
+      <div className="grid gap-4">
+        <Msg tone="error">{error.code === "network" ? t("error.network") : error.message}</Msg>
+        <button className={btnSecondary} onClick={reload}>{t("retry")}</button>
+      </div>
+    );
+  }
+  if (!data) return <Msg>{t("loading")}</Msg>;
+
+  const refreshKey = `${data.sales.count}|${data.goal.targetCents}|${data.profile.regionId}|${data.sales.grossCents}`;
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="grid gap-4">
+      <div>
+        <h1 className="text-3xl font-extrabold text-[#003087]">
+          {t("home.title")} — {data.profile.alias}
+        </h1>
+        <p className="text-slate-700">{t("home.sub")}</p>
+      </div>
+      <ProfileForm data={data} onChange={setData} />
+      <MoneyCard data={data} />
+      <Card>
+        <button className={`${btnPrimary} w-full text-xl`} disabled={loading} onClick={charge}>
+          {loading ? t("sale.loading") : t("sale.button")}
+        </button>
+        <p className="mt-2 text-base text-slate-700">{t("sale.hint")}</p>
+        {err && <div className="mt-3"><Msg tone="error">{err}</Msg></div>}
+      </Card>
+      <Insights refreshKey={refreshKey} />
     </div>
   );
 }
