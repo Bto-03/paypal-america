@@ -9,7 +9,9 @@ import type {
   Mode,
   Ok,
   OrderDTO,
+  ReceiptDTO,
   RegionId,
+  StickerId,
 } from "@/server/contract";
 
 export class ApiError extends Error {
@@ -75,8 +77,20 @@ export const createOrder = (purpose: "sale" | "donation_demo", causeId?: string)
 export const capture = (id: string) => call<OrderDTO>(`/api/orders/${encodeURIComponent(id)}/capture`, post());
 export const getOrder = (id: string) => call<OrderDTO>(`/api/orders/${encodeURIComponent(id)}`);
 export const cancel = (id: string) => call<OrderDTO>(`/api/orders/${encodeURIComponent(id)}/cancel`, post());
-export const patchProfile = (p: { alias?: string; regionId?: RegionId; goalCents?: number }) =>
-  call<DashboardDTO>("/api/profile", { method: "PATCH", body: JSON.stringify(p) });
+export const patchProfile = (p: {
+  alias?: string;
+  regionId?: RegionId;
+  goalCents?: number;
+  avatar?: StickerId;
+  receiptNote?: string;
+}) => call<DashboardDTO>("/api/profile", { method: "PATCH", body: JSON.stringify(p) });
+export const getReceipt = (id: string) => call<ReceiptDTO>(`/api/orders/${encodeURIComponent(id)}/receipt`);
+
+/** Demo reset for videos: forget this browser's session and onboarding flag. */
+export async function resetDemo() {
+  await call<{ reset: true }>("/api/session/reset", post());
+  localStorage.removeItem("pa_onboarded");
+}
 export const getCauses = (regionId: RegionId) =>
   call<CauseDTO[]>(`/api/causes?regionId=${encodeURIComponent(regionId)}`);
 export const getInsights = (lang: string) => call<InsightsDTO>("/api/insights", { ...post(), lang });

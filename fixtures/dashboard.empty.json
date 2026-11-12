@@ -1,7 +1,17 @@
 {
   "data": {
-    "profile": { "alias": "Guest", "regionId": "galapagos" },
-    "goal": { "targetCents": 30000, "progressCents": 0, "percent": 0, "basis": "ec_estimate_net" },
+    "profile": {
+      "alias": "Guest",
+      "regionId": "galapagos",
+      "avatar": "tortoise",
+      "receiptNote": ""
+    },
+    "goal": {
+      "targetCents": 30000,
+      "progressCents": 0,
+      "percent": 0,
+      "basis": "ec_estimate_net"
+    },
     "sales": {
       "count": 0,
       "grossCents": 0,
@@ -21,12 +31,28 @@
     },
     "lastOrder": null,
     "stickers": [],
-    "donations": { "count": 0, "totalCents": 0 },
+    "donations": {
+      "count": 0,
+      "totalCents": 0
+    },
     "places": [
-      { "id": "galapagos", "label": "Galápagos" },
-      { "id": "sierra", "label": "Sierra (Quito)" },
-      { "id": "costa", "label": "Costa (Guayaquil)" }
-    ]
+      {
+        "id": "galapagos",
+        "label": "Galápagos"
+      },
+      {
+        "id": "sierra",
+        "label": "Sierra (Quito)"
+      },
+      {
+        "id": "costa",
+        "label": "Costa (Guayaquil)"
+      }
+    ],
+    "recent": []
   },
-  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+  "meta": {
+    "mode": "mock",
+    "generatedAt": "2026-11-11T15:00:00.000Z"
+  }
 }

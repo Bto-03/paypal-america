@@ -1,11 +1,25 @@
 {
   "data": {
-    "profile": { "alias": "Ana", "regionId": "galapagos" },
-    "goal": { "targetCents": 30000, "progressCents": 18890, "percent": 63, "basis": "ec_estimate_net" },
+    "profile": {
+      "alias": "Ana",
+      "regionId": "galapagos",
+      "avatar": "tortoise",
+      "receiptNote": "Thank you for supporting local!"
+    },
+    "goal": {
+      "targetCents": 30000,
+      "progressCents": 18890,
+      "percent": 63,
+      "basis": "ec_estimate_net"
+    },
     "sales": {
       "count": 1,
       "grossCents": 20000,
-      "observed": { "feeCents": 747, "netCents": 19253, "source": "sandbox_observed" },
+      "observed": {
+        "feeCents": 747,
+        "netCents": 19253,
+        "source": "sandbox_observed"
+      },
       "estimateEc": {
         "feeCents": 1110,
         "netCents": 18890,
@@ -42,12 +56,41 @@
         "earnedAt": "2026-11-11T14:11:30.000Z"
       }
     ],
-    "donations": { "count": 0, "totalCents": 0 },
+    "donations": {
+      "count": 0,
+      "totalCents": 0
+    },
     "places": [
-      { "id": "galapagos", "label": "Galápagos" },
-      { "id": "sierra", "label": "Sierra (Quito)" },
-      { "id": "costa", "label": "Costa (Guayaquil)" }
+      {
+        "id": "galapagos",
+        "label": "Galápagos"
+      },
+      {
+        "id": "sierra",
+        "label": "Sierra (Quito)"
+      },
+      {
+        "id": "costa",
+        "label": "Costa (Guayaquil)"
+      }
+    ],
+    "recent": [
+      {
+        "id": "MOCK-7K2QX9ABCD1EF",
+        "purpose": "sale",
+        "status": "completed",
+        "amountCents": 20000,
+        "currency": "USD",
+        "causeId": null,
+        "captureId": "MOCKCAP-4H8ZP2LMN9WQ",
+        "approvalUrl": null,
+        "createdAt": "2026-11-11T14:10:00.000Z",
+        "updatedAt": "2026-11-11T14:11:30.000Z"
+      }
     ]
   },
-  "meta": { "mode": "mock", "generatedAt": "2026-11-11T15:00:00.000Z" }
+  "meta": {
+    "mode": "mock",
+    "generatedAt": "2026-11-11T15:00:00.000Z"
+  }
 }

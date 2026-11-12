@@ -1,7 +1,7 @@
 // PayPal Orders v2 client. Sandbox only: the live endpoint is never used.
 // Without credentials the app runs in MOCK mode (clearly labeled) so the UI can be built.
 import { createHash, randomUUID } from "node:crypto";
-import type { Mode } from "./contract.ts";
+import type { CheckDTO, Mode } from "./contract.ts";
 import { toCents } from "./money.ts";
 
 export const SANDBOX_BASE = "https://api-m.sandbox.paypal.com";
@@ -92,6 +92,28 @@ export function verifyCapture(order: PPOrder, exp: Expected): Verified {
   const fee = b?.paypal_fee?.value ? toCents(b.paypal_fee.value) : null;
   const net = b?.net_amount?.value ? toCents(b.net_amount.value) : null;
   return { ok: true, status, captureId: cap.id, feeObservedCents: fee, netObservedCents: net };
+}
+
+/** Per-check results behind verifyCapture (same rules; a payment counts only when all are ok). */
+export function checkCapture(order: PPOrder, exp: Expected): CheckDTO[] {
+  const pu = order.purchase_units?.[0];
+  const cap = pu?.payments?.captures?.[0];
+  let amount: number | null = null;
+  try {
+    if (cap?.amount) amount = toCents(cap.amount.value);
+  } catch {
+    // unreadable amount stays null -> amount check false
+  }
+  const payeeOk =
+    (!exp.payeeEmail || pu?.payee?.email_address?.toLowerCase() === exp.payeeEmail.toLowerCase()) &&
+    (!exp.payeeMerchantId || pu?.payee?.merchant_id === exp.payeeMerchantId);
+  return [
+    { name: "status", ok: cap?.status === "COMPLETED" || cap?.status === "PENDING" },
+    { name: "amount", ok: amount !== null && amount === exp.amountCents },
+    { name: "currency", ok: cap?.amount?.currency_code === "USD" },
+    { name: "payee", ok: !!cap && payeeOk },
+    { name: "session", ok: !!pu && pu.custom_id === exp.sessionTag },
+  ];
 }
 
 // ---------- client interface ----------

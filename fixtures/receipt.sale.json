@@ -1,0 +1,94 @@
+{
+  "data": {
+    "receiptNo": "PA-2026-0001",
+    "order": {
+      "id": "MOCK-7K2QX9ABCD1EF",
+      "purpose": "sale",
+      "status": "completed",
+      "amountCents": 20000,
+      "currency": "USD",
+      "causeId": null,
+      "captureId": "MOCKCAP-4H8ZP2LMN9WQ",
+      "approvalUrl": null,
+      "createdAt": "2026-11-11T14:10:00.000Z",
+      "updatedAt": "2026-11-11T14:11:30.000Z"
+    },
+    "seller": {
+      "alias": "Ana",
+      "regionId": "galapagos",
+      "avatar": "tortoise",
+      "receiptNote": "Thank you for supporting local!",
+      "regionLabel": "Galápagos"
+    },
+    "lines": {
+      "grossCents": 20000,
+      "feeObservedCents": 747,
+      "netObservedCents": 19253,
+      "feeEcCents": 1110,
+      "netEcCents": 18890
+    },
+    "events": [
+      {
+        "type": "created",
+        "at": "2026-11-11T14:10:00.000Z",
+        "detail": null
+      },
+      {
+        "type": "approved",
+        "at": "2026-11-11T14:11:29.000Z",
+        "detail": null
+      },
+      {
+        "type": "captured",
+        "at": "2026-11-11T14:11:30.000Z",
+        "detail": "MOCKCAP-4H8ZP2LMN9WQ"
+      },
+      {
+        "type": "verified",
+        "at": "2026-11-11T14:11:30.000Z",
+        "detail": null
+      },
+      {
+        "type": "sticker_awarded",
+        "at": "2026-11-11T14:11:30.000Z",
+        "detail": "golden_mango"
+      }
+    ],
+    "checks": [
+      {
+        "name": "status",
+        "ok": true
+      },
+      {
+        "name": "amount",
+        "ok": true
+      },
+      {
+        "name": "currency",
+        "ok": true
+      },
+      {
+        "name": "payee",
+        "ok": true
+      },
+      {
+        "name": "session",
+        "ok": true
+      }
+    ],
+    "sticker": {
+      "id": "stk_01JABC0001",
+      "kind": "golden_mango",
+      "placeId": "galapagos",
+      "placeLabel": "Galápagos",
+      "milestone": "first_sale",
+      "origin": "declared_unverified",
+      "earnedAt": "2026-11-11T14:11:30.000Z"
+    },
+    "cause": null
+  },
+  "meta": {
+    "mode": "mock",
+    "generatedAt": "2026-11-11T15:00:00.000Z"
+  }
+}

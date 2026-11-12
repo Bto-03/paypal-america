@@ -51,7 +51,8 @@ The spec fixes only some HTTP statuses (400, 404, 409 above). Other statuses fol
 | POST | `/api/orders/:id/cancel` | — | `OrderDTO` with status `cancelled` (only from `created`/`approved`) |
 | GET | `/api/orders/:id` | — | `OrderDTO`; a `pending` order is re-fetched and re-verified |
 | GET | `/api/dashboard` | — | `DashboardDTO` |
-| PATCH | `/api/profile` | `{ alias?, regionId?, goalCents? }` | `DashboardDTO` |
+| GET | `/api/orders/:id/receipt` | — | `ReceiptDTO` (same session only, else 404) |
+| PATCH | `/api/profile` | `{ alias?, regionId?, goalCents?, avatar?, receiptNote? }` | `DashboardDTO` |
 | GET | `/api/causes` | `?regionId=galapagos\|sierra\|costa` | `CauseDTO[]` |
 | POST | `/api/insights` | — | `InsightsDTO` |
 | POST | `/api/mock/decide` | `{ token, choice: "completed" \| "pending" \| "cancel" }` | Redirect. Mock mode only, otherwise 404. |
@@ -62,6 +63,9 @@ Rules the server enforces:
 - **Capture:** only a capture that passes `verifyCapture` counts. The return URL proves nothing.
   `ORDER_NOT_APPROVED` returns 409 ("not approved yet").
 - **Profile:** `alias` is 1–40 characters. `goalCents` is an integer from 100 to 10,000,000. `regionId` must be a known region.
+  `avatar` is a `StickerId`; `golden_mango` and `condor` only once earned. `receiptNote` is trimmed, control characters stripped, 0–80 characters. The default avatar follows the region (`tortoise`/`llama`/`mango`).
+- **Traceability:** each order records events (`created`, `approved`, `captured` or `pending`, `verified` or `verification_failed`, `cancelled`, `sticker_awarded`), once per type. Per-check results (`status`, `amount`, `currency`, `payee`, `session`) are stored when verification runs.
+- **Receipt:** `receiptNo` = `PA-<year>-<4-digit per-session sequence>`. Sales show observed and Ecuador-estimate fee/net; donations show gross only (EC and observed fields `null`) plus the DEMO `cause`.
 - **Goal:** progress is the estimated Ecuador net of completed sales. Donations never count toward the goal or stickers.
 
 ## DTOs
@@ -69,9 +73,11 @@ Rules the server enforces:
 Amounts are `*Cents` integers.
 
 - **OrderDTO:** `id`, `purpose` (`sale` \| `donation_demo`), `status` (`created` \| `approved` \| `pending` \| `completed` \| `cancelled` \| `failed`), `amountCents`, `currency` (`"USD"`), `causeId`, `captureId`, `approvalUrl`, `createdAt`, `updatedAt`.
-- **DashboardDTO:** `profile {alias, regionId}`, `goal {targetCents, progressCents, percent, basis: "ec_estimate_net"}`, `sales {count, grossCents, observed, estimateEc, withdrawal}`, `lastOrder`, `stickers[]`, `donations {count, totalCents}`, `places[]`.
+- **DashboardDTO:** `profile {alias, regionId, avatar, receiptNote}`, `goal {targetCents, progressCents, percent, basis: "ec_estimate_net"}`, `sales {count, grossCents, observed, estimateEc, withdrawal}`, `lastOrder`, `recent[]` (last 10 orders, newest first), `stickers[]`, `donations {count, totalCents}`, `places[]`.
 - **MoneyLine** (inside `sales`): `feeCents`, `netCents`, `source`, and `rule` (estimate lines only).
-- **StickerDTO:** `id`, `kind: "golden_mango"`, `placeId`, `placeLabel`, `milestone: "first_sale"`, `origin: "declared_unverified"`, `earnedAt`.
+- **StickerDTO:** `id`, `kind` (`golden_mango` \| `condor`), `placeId`, `placeLabel`, `milestone` (`first_sale` \| `goal_reached`), `origin: "declared_unverified"`, `earnedAt`.
+- **ReceiptDTO:** `receiptNo`, `order`, `seller {alias, regionId, avatar, receiptNote, regionLabel}`, `lines {grossCents, feeObservedCents, netObservedCents, feeEcCents, netEcCents}`, `events[] {type, at, detail}`, `checks[] {name, ok}` (empty until verification ran), `sticker` (earned by this order or `null`), `cause {id, name}` (donations only).
+- **Condor:** the first completed sale that takes `goal.percent` to 100 or more awards one `condor` sticker (`goal_reached`).
 - **InsightsDTO:** `aiStatus` (`ok` \| `unavailable` \| `no_data`), `insights[]`, `evidence[]`, `cached`.
 - **InsightDTO:** `category` (`progress` \| `fees` \| `withdrawal` \| `next_step`), `text`, `evidenceIds[]`, `assumptions[]`.
 - **EvidenceItem:** `id`, `label`, `valueCents` (nullable), `value` (display string), `source` (`sandbox_observed` \| `ec_estimate` \| `computed` \| `declared`).

@@ -1,10 +1,10 @@
 // Business logic. No Next imports: testable with a fake PayPal client and an in-memory Store.
 import { randomUUID } from "node:crypto";
-import type { CauseDTO, DashboardDTO, ErrorCode, OrderDTO, RegionId } from "./contract.ts";
-import { CAUSES, REGIONS, causesFor, isRegion, regionLabel } from "./catalog.ts";
-import { Store, store, type OrderRow } from "./db.ts";
-import { DONATION_CENTS, EC_RULE, SALE_CENTS, WITHDRAW_RULE, ecEstimate, goalPercent, withdrawal } from "./money.ts";
-import { PayPalError, mode, paypal, sessionTag, verifyCapture, type PPOrder } from "./paypal.ts";
+import type { CauseDTO, CheckDTO, DashboardDTO, ErrorCode, OrderDTO, ReceiptDTO, RegionId, StickerDTO, StickerId } from "./contract.ts";
+import { CAUSES, REGIONS, causesFor, isRegion, isStickerId, regionLabel } from "./catalog.ts";
+import { Store, store, type OrderRow, type StickerRow } from "./db.ts";
+import { DONATION_CENTS, EC_RULE, SALE_CENTS, WITHDRAW_RULE, ecEstimate, ecFee, goalPercent, withdrawal } from "./money.ts";
+import { PayPalError, checkCapture, mode, paypal, sessionTag, verifyCapture, type PPOrder } from "./paypal.ts";
 import { fail, ok } from "./http.ts";
 
 export class ServiceError extends Error {
@@ -39,6 +39,16 @@ export async function handle(fn: () => unknown | Promise<unknown>, init?: Respon
   }
 }
 
+const stickerDto = (k: StickerRow): StickerDTO => ({
+  id: k.id,
+  kind: k.kind,
+  placeId: k.placeId,
+  placeLabel: regionLabel(k.placeId),
+  milestone: k.milestone,
+  origin: "declared_unverified",
+  earnedAt: k.earnedAt,
+});
+
 const dto = ({ sid: _s, feeObservedCents: _f, netObservedCents: _n, ...o }: OrderRow): OrderDTO => o;
 
 function own(sid: string, id: string): OrderRow {
@@ -54,8 +64,9 @@ export function dashboard(sid: string): DashboardDTO {
   const est = ecEstimate(sales.map((o) => o.amountCents));
   const withObs = sales.filter((o) => o.feeObservedCents != null && o.netObservedCents != null);
   const donations = s.completed(sid, "donation_demo");
+  const recent = s.orders(sid).slice(0, 10).map(dto);
   return {
-    profile: { alias: p.alias, regionId: p.regionId },
+    profile: { alias: p.alias, regionId: p.regionId, avatar: p.avatar, receiptNote: p.receiptNote },
     goal: {
       targetCents: p.goalCents,
       progressCents: est.netCents,
@@ -75,16 +86,9 @@ export function dashboard(sid: string): DashboardDTO {
       estimateEc: { ...est, rule: EC_RULE, source: "ec_estimate" },
       withdrawal: { ...withdrawal(est.netCents), rule: WITHDRAW_RULE, source: "ec_estimate" },
     },
-    lastOrder: s.orders(sid)[0] ? dto(s.orders(sid)[0]) : null,
-    stickers: s.stickers(sid).map((k) => ({
-      id: k.id,
-      kind: k.kind,
-      placeId: k.placeId,
-      placeLabel: regionLabel(k.placeId),
-      milestone: k.milestone,
-      origin: "declared_unverified",
-      earnedAt: k.earnedAt,
-    })),
+    lastOrder: recent[0] ?? null,
+    recent,
+    stickers: s.stickers(sid).map(stickerDto),
     donations: { count: donations.length, totalCents: donations.reduce((a, o) => a + o.amountCents, 0) },
     places: REGIONS.map((r) => ({ ...r })),
   };
@@ -114,23 +118,39 @@ export async function createOrder(sid: string, body: unknown): Promise<OrderDTO>
     requestId: `create-${randomUUID()}`,
   });
   db().profile(sid);
-  return dto(db().insertOrder({ id: created.id, sid, purpose, amountCents, causeId, approvalUrl: created.approvalUrl }));
+  const row = db().insertOrder({ id: created.id, sid, purpose, amountCents, causeId, approvalUrl: created.approvalUrl });
+  db().addEvent(row.id, "created");
+  return dto(row);
 }
 
 /** Verify the order as PayPal returned it and record it. Throws verification_failed. */
 function reconcile(sid: string, o: OrderRow, pp: PPOrder): OrderRow {
-  const v = verifyCapture(pp, {
+  const exp = {
     amountCents: o.amountCents,
     sessionTag: sessionTag(sid),
     payeeEmail: process.env.PAYPAL_PAYEE_EMAIL || null,
     payeeMerchantId: process.env.PAYPAL_PAYEE_MERCHANT_ID || null,
-  });
+  };
+  const v = verifyCapture(pp, exp);
+  const checks = checkCapture(pp, exp);
+  db().setChecks(o.id, checks);
   if (!v.ok) {
     db().setStatus(o.id, "failed");
+    db().addEvent(o.id, "verification_failed", checks.find((c) => !c.ok)?.name ?? "unknown");
     throw new ServiceError("verification_failed", "payment could not be verified", 409);
   }
   db().recordCapture(o.id, v);
-  if (v.status === "completed" && o.purpose === "sale") db().awardMango(sid, db().profile(sid).regionId, o.id);
+  db().addEvent(o.id, v.status === "completed" ? "captured" : "pending", v.captureId);
+  if (v.status === "completed") {
+    db().addEvent(o.id, "verified");
+    if (o.purpose === "sale") {
+      const place = db().profile(sid).regionId;
+      if (db().awardMango(sid, place, o.id)) db().addEvent(o.id, "sticker_awarded", "golden_mango");
+      if (dashboard(sid).goal.percent >= 100 && db().awardSticker(sid, place, "condor", "goal_reached", o.id)) {
+        db().addEvent(o.id, "sticker_awarded", "condor");
+      }
+    }
+  }
   return db().order(o.id)!;
 }
 
@@ -146,6 +166,7 @@ export async function captureOrder(sid: string, id: string): Promise<OrderDTO> {
     else if (e instanceof PayPalError && e.issue === "ORDER_NOT_APPROVED") throw new ServiceError("bad_request", "not approved yet", 409);
     else throw e;
   }
+  db().addEvent(id, "approved"); // PayPal accepted the approval: the capture call went through
   return dto(reconcile(sid, o, pp));
 }
 
@@ -165,12 +186,13 @@ export function cancelOrder(sid: string, id: string): OrderDTO {
   if (o.status === "cancelled") return dto(o);
   if (o.status !== "created" && o.status !== "approved") throw new ServiceError("bad_request", `cannot cancel a ${o.status} order`, 409);
   db().setStatus(id, "cancelled");
+  db().addEvent(id, "cancelled");
   return dto(db().order(id)!);
 }
 
 export function updateProfile(sid: string, body: unknown): DashboardDTO {
   const b = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
-  const patch: { alias?: string; regionId?: RegionId; goalCents?: number } = {};
+  const patch: { alias?: string; regionId?: RegionId; goalCents?: number; avatar?: StickerId; receiptNote?: string } = {};
   if (b.alias !== undefined) {
     const a = typeof b.alias === "string" ? b.alias.trim() : "";
     if (a.length < 1 || a.length > 40) throw new ServiceError("bad_request", "alias must be 1-40 characters", 400);
@@ -187,6 +209,20 @@ export function updateProfile(sid: string, body: unknown): DashboardDTO {
     }
     patch.goalCents = g;
   }
+  if (b.avatar !== undefined) {
+    if (!isStickerId(b.avatar)) throw new ServiceError("bad_request", "invalid avatar", 400);
+    if ((b.avatar === "golden_mango" || b.avatar === "condor") && !db().stickers(sid).some((k) => k.kind === b.avatar)) {
+      throw new ServiceError("bad_request", "avatar not earned yet", 400);
+    }
+    patch.avatar = b.avatar;
+  }
+  if (b.receiptNote !== undefined) {
+    if (typeof b.receiptNote !== "string") throw new ServiceError("bad_request", "receiptNote must be a string", 400);
+    // eslint-disable-next-line no-control-regex
+    const n = b.receiptNote.replace(/[\u0000-\u001f\u007f-\u009f]/g, "").trim();
+    if (n.length > 80) throw new ServiceError("bad_request", "receiptNote must be at most 80 characters", 400);
+    patch.receiptNote = n;
+  }
   db().updateProfile(sid, patch);
   return dashboard(sid);
 }
@@ -194,4 +230,30 @@ export function updateProfile(sid: string, body: unknown): DashboardDTO {
 export function causes(sid: string, regionId: string | null): CauseDTO[] {
   if (regionId && !isRegion(regionId)) throw new ServiceError("bad_request", "invalid regionId", 400);
   return causesFor((regionId as RegionId | null) ?? db().profile(sid).regionId);
+}
+
+export function receipt(sid: string, id: string): ReceiptDTO {
+  const o = own(sid, id);
+  const s = db();
+  const p = s.profile(sid);
+  const sale = o.purpose === "sale";
+  const feeEc = sale ? ecFee(o.amountCents) : null;
+  const sticker = s.stickers(sid).find((k) => k.orderId === o.id);
+  const cause = o.causeId ? CAUSES.find((c) => c.id === o.causeId) : null;
+  return {
+    receiptNo: `PA-${o.createdAt.slice(0, 4)}-${String(s.sequence(sid, o.id)).padStart(4, "0")}`,
+    order: dto(o),
+    seller: { alias: p.alias, regionId: p.regionId, avatar: p.avatar, receiptNote: p.receiptNote, regionLabel: regionLabel(p.regionId) },
+    lines: {
+      grossCents: o.amountCents,
+      feeObservedCents: sale ? o.feeObservedCents : null,
+      netObservedCents: sale ? o.netObservedCents : null,
+      feeEcCents: feeEc,
+      netEcCents: feeEc === null ? null : o.amountCents - feeEc,
+    },
+    events: s.events(o.id),
+    checks: o.checks as CheckDTO[],
+    sticker: sticker ? stickerDto(sticker) : null,
+    cause: cause ? { id: cause.id, name: cause.name } : null,
+  };
 }

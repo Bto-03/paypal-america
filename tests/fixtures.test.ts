@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CAUSES, REGIONS, causesFor } from "../src/server/catalog.ts";
+import { CAUSES, REGIONS, causesFor, isStickerId } from "../src/server/catalog.ts";
 import {
   DEFAULT_GOAL_CENTS,
   EC_RULE,
@@ -28,6 +28,7 @@ const EXPECTED_FILES = [
   "order.cancelled.json",
   "order.duplicate.json",
   "order.pending.json",
+  "receipt.sale.json",
 ];
 
 const ORDER_STATUS = ["created", "approved", "pending", "completed", "cancelled", "failed"];
@@ -118,8 +119,11 @@ test("every fixture has a valid envelope and integer cents", () => {
 
 test("dashboard.success: shape, enums, and numbers equal money.ts", () => {
   const d = fixtures["dashboard.success.json"].data;
-  keys(d, ["profile", "goal", "sales", "lastOrder", "stickers", "donations", "places"]);
-  keys(d.profile, ["alias", "regionId"]);
+  keys(d, ["profile", "goal", "sales", "lastOrder", "recent", "stickers", "donations", "places"]);
+  keys(d.profile, ["alias", "regionId", "avatar", "receiptNote"]);
+  assert.ok(isStickerId(d.profile.avatar));
+  assert.ok(d.profile.receiptNote.length <= 80);
+  assert.deepEqual(d.recent, [d.lastOrder]);
   assert.ok(REGION_IDS.includes(d.profile.regionId));
   assert.deepEqual(d.places, REGIONS);
 
@@ -194,6 +198,9 @@ test("dashboard.empty: zero everything, nulls where DTO allows", () => {
   assert.equal(d.goal.progressCents, 0);
   assert.equal(d.goal.percent, 0);
   assert.equal(d.lastOrder, null);
+  assert.deepEqual(d.recent, []);
+  assert.equal(d.profile.receiptNote, "");
+  assert.ok(isStickerId(d.profile.avatar));
   assert.deepEqual(d.stickers, []);
   assert.deepEqual(d.donations, { count: 0, totalCents: 0 });
   assert.ok(REGION_IDS.includes(d.profile.regionId));
@@ -297,4 +304,27 @@ test("error.verification_failed: error envelope with a valid code", () => {
   const f = fixtures["error.verification_failed.json"];
   assert.equal(f.error.code, "verification_failed");
   assert.equal("data" in f, false);
+});
+
+test("receipt.sale: shape, numbers equal money.ts, events chronological", () => {
+  const r = fixtures["receipt.sale.json"].data;
+  keys(r, ["receiptNo", "order", "seller", "lines", "events", "checks", "sticker", "cause"]);
+  assert.match(r.receiptNo, /^PA-\d{4}-\d{4}$/);
+  assertOrder(r.order);
+  keys(r.seller, ["alias", "regionId", "avatar", "receiptNote", "regionLabel"]);
+  keys(r.lines, ["grossCents", "feeObservedCents", "netObservedCents", "feeEcCents", "netEcCents"]);
+  const ec = ecEstimate([r.lines.grossCents]);
+  assert.equal(r.lines.feeEcCents, ec.feeCents);
+  assert.equal(r.lines.netEcCents, ec.netCents);
+  assert.equal(r.lines.grossCents, r.order.amountCents);
+  const times = r.events.map((e: Json) => e.at);
+  assert.deepEqual([...times].sort(), times);
+  for (const e of r.events) {
+    keys(e, ["type", "at", "detail"]);
+    assert.match(e.at, ISO);
+  }
+  assert.deepEqual(r.checks.map((c: Json) => c.name), ["status", "amount", "currency", "payee", "session"]);
+  assert.ok(r.checks.every((c: Json) => c.ok === true));
+  assert.equal(r.sticker.kind, "golden_mango");
+  assert.equal(r.cause, null);
 });

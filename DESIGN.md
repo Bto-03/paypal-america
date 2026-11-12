@@ -65,6 +65,62 @@
 - **Perfil / personalizar** (sheet or section in Inicio): alias, region, avatar sticker picker,
   receipt thank-you note (≤ 80 chars, live receipt preview), goal.
 
+## Disruptive direction (overrides softer choices above when they conflict)
+References the team likes: footer.design (oversized wordmark footers), scrolltide.co (scroll-driven,
+"doesn't look AI-made"), cta.gallery (tactile, confident CTAs). Be bold in FORM, calm in MONEY.
+1. **Editorial money.** The hero number (estimated net) is huge display type (clamp 64–120px),
+   tabular, tight tracking, with the cents smaller and raised. Labels small caps. Feels like a
+   magazine cover, not a dashboard.
+2. **The money river (signature).** On Inicio and on receipts, the $200 visually *flows*: one band
+   for gross that splits into "PayPal fee (sandbox observed)", "Ecuador estimate fee" and
+   "what you keep" — an SVG sankey-style ribbon with exact labels. This IS the traceability, shown
+   instead of told. Animates once on scroll into view; static under reduced motion.
+3. **Andes contour background.** Instead of generic blobs: thin topographic contour lines (SVG,
+   1px, 6–10% opacity) that drift very slowly; region tints them (Galápagos teal, Sierra
+   terracotta, Costa mango). Glass panels float over it. Unmistakably Ecuadorian, never AI-ish.
+4. **Tactile CTA.** The primary "Cobrar $200" is a large pill with **press-and-hold to confirm**
+   (fills left→right in ~700 ms, haptic `navigator.vibrate(10)` if available, Enter/Space works too
+   and a plain click shows "hold to confirm" hint) — prevents double charges and feels physical.
+   On mobile it is a sticky bottom CTA above the tab bar.
+5. **Stickers you can touch.** Stickers have a peel-corner effect on hover/press and a tiny
+   parallax tilt; earning one = stamp slam with ink spread. The avatar sticker sits on the header
+   like it was stuck on a laptop.
+6. **Receipts that print.** The receipt slides out of a slot like a real ticket (translateY reveal),
+   perforated edges, rubber-stamp "SANDBOX", seller's note in a handwritten-feel font
+   (e.g. 'Caveat' via next/font, ONLY for the note).
+7. **Oversized footer wordmark.** "PayPal America" set huge (≈18vw), cropped by the viewport bottom,
+   with three stickers "stuck" on it at angles, plus the honest disclaimer in small type.
+8. **Scroll as narrative** on Inicio: hero → money river → tips (AI) → recent receipts → footer,
+   each band revealed with CSS scroll-driven animations (`animation-timeline: view()`) and a
+   graceful no-support fallback. No scroll-jacking.
+Still non-negotiable: contrast ≥ 4.5:1, one primary action per screen, words + icons for status,
+SANDBOX visible, reduced-motion/transparency fallbacks, works great on a 390px phone.
+
+## Reference screens chosen by the team (design-refs/*.png — look at them)
+Take the PATTERNS, not the content. Combine them into one coherent PayPal America system:
+- **3 + 4 (deep-blue hero → white sheet):** top third is a deep PayPal-blue zone (#001F6B→#003087,
+  with the Andes contour lines) holding the big balance + 1–2 glass cards (frosted, white 10–14%
+  fill, hairline border). Below, a white/near-white **sheet with 28px top radius** rises over it
+  and holds everything else. This is the glassmorphism: on the blue only; the sheet stays clean.
+- **4 (PLATA, Spanish fintech):** two glass action pills in the hero ("Cobrar $200" primary,
+  "Ver recibos" secondary); bento cards on the sheet (2 columns: "Pasaporte · 3 stickers",
+  "Apoyar · DEMO"); orange active state → use our **mango #F6B21B / terracotta** as the single
+  warm accent for the active tab and celebration.
+- **1 + 2 (floating dock):** bottom navigation is a **floating pill dock** (dark navy #0B1B3F at
+  92% + blur, 64px tall, 16px from bottom), active item expands to icon + label, others icon-only
+  with aria-labels. Desktop: same dock, centered.
+- **1 (wallet pocket):** on Inicio, a stitched "pocket" (dashed stitch line, soft leather-like
+  navy texture via CSS gradients) from which the seller's **Passport card** peeks out: region
+  landscape illustration (SVG: Galápagos coast / Andes with Cotopaxi / Costa palms) + avatar
+  sticker + alias. NOT a payment card: no numbers, no chip, no network logo, no CVV.
+- **1 (limit bar):** goal progress as a thick rounded bar: solid blue fill for progress, **hatched
+  diagonal stripes** for the remainder, a knob at the boundary, "$188.90 / $300.00" right-aligned.
+- **1 (grouped list):** recent activity grouped under "Hoy / Ayer / Antes" with a hairline after
+  the group label; each row: sticker/avatar circle, title + date, amount right with status word
+  below in color+text ("Verificado", "Pendiente").
+- **3 (sparkline rows, optional):** tiny sparkline of net per sale if ≥2 sales.
+- Round 44px icon buttons top-right (language ES/EN, help). Avatar sticker top-left.
+
 ## Motion
 150–250 ms ease-out; timeline steps stagger 120 ms; sticker earned = small stamp (scale 1.15 → 1,
 rotate −6° → −3°). Nothing loops forever except the background mesh (very slow, 30 s+).
